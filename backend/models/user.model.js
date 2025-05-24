@@ -1,60 +1,50 @@
 const mongoose = require('mongoose');
-const bcrypt = require('bcryptjs');
+const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
+
 const userSchema = new mongoose.Schema({
-  name: {
-    type: String,
-    required: true,
-    maxlength: 50
-  },
-  email: {
-    type: String,
-    required: true,
-    unique: true,
-    lowercase: true
-  },
-  password: {
-    type: String,
-    required: true,
-    minlength: 6,
-    select: false // don't return password in queries
-  },
-  phoneNumber: {
-    type: String,
-    required: true
-  },
-  role: {
-    type: String,
-    enum: ['passenger', 'staff', 'admin'],
-    default: 'passenger'
-  },
-  metroCardNumber: {
-    type: String,
-    unique: true
-  },
-  balance: {
-    type: Number,
-    default: 0
-  },
-  activeTickets: [{
-    ticketId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Ticket'
+    fullname: {
+        firstname: {
+            type: String,
+            required: true,
+            minlength: [ 3, 'First name must be at least 3 characters long' ],
+        },
+        lastname: {
+            type: String,
+            minlength: [ 3, 'Last name must be at least 3 characters long' ],
+        }
     },
-    validFrom: Date,
-    validUntil: Date,
-    status: {
-      type: String,
-      enum: ['active', 'used', 'expired'],
-      default: 'active'
-    }
-  }],
-  travelHistory: [{
-    entryStation: String,
-    exitStation: String,
-    entryTime: Date,
-    exitTime: Date,
-    fare: Number
-  }]
-}, { timestamps: true });
+    email: {
+        type: String,
+        required: true,
+        unique: true,
+        minlength: [ 5, 'Email must be at least 5 characters long' ],
+    },
+    password: {
+        type: String,
+        required: true,
+        select: false,
+    },
+    socketId: {
+        type: String,
+    },
+})
+
+userSchema.methods.generateAuthToken = function () {
+    const token = jwt.sign({ _id: this._id }, process.env.JWT_SECRET, { expiresIn: '24h' });
+    return token;
+}
+
+userSchema.methods.comparePassword = async function (password) {
+    return await bcrypt.compare(password, this.password);
+}
+
+userSchema.statics.hashPassword = async function (password) {
+    return await bcrypt.hash(password, 10);
+}
+
+const userModel = mongoose.model('user', userSchema);
+
+
+module.exports = userModel;
