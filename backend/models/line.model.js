@@ -44,7 +44,6 @@ const lineSchema = new mongoose.Schema({
 });
 
 // Index for faster queries
-lineSchema.index({ lineName: 1 });
 lineSchema.index({ 'stations.station': 1 });
 
 const Line = mongoose.model('Line', lineSchema);

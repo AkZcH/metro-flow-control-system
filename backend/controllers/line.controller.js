@@ -25,10 +25,10 @@ const createLine = async (req, res) => {
 
         // Validate stations
         for (const station of stations) {
-            if (!station.name || !station.arrival || !station.departure) {
+            if (!station.station || !station.arrival || !station.departure) {
                 return res.status(400).json({
                     success: false,
-                    message: 'Each station must have name, arrival, and departure times'
+                    message: 'Each station must have station ID, arrival, and departure times'
                 });
             }
 
@@ -38,6 +38,15 @@ const createLine = async (req, res) => {
                 return res.status(400).json({
                     success: false,
                     message: 'Invalid time format. Use HH:MM format with leading zeros (e.g., 03:05)'
+                });
+            }
+
+            // Verify station exists
+            const stationExists = await Station.findById(station.station);
+            if (!stationExists) {
+                return res.status(400).json({
+                    success: false,
+                    message: `Station with ID ${station.station} does not exist`
                 });
             }
         }

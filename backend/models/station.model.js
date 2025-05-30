@@ -43,7 +43,6 @@ const stationSchema = new mongoose.Schema({
 });
 
 // Index for faster queries
-stationSchema.index({ name: 1 });
 stationSchema.index({ 'lines.line': 1 });
  
 const Station = mongoose.model('Station', stationSchema);

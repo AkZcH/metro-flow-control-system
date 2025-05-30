@@ -22,12 +22,35 @@ const lineValidationRules = {
         body('frequencyMinutes').isInt({ min: 1 }),
         body('stations').isArray().notEmpty(),
         body('stations.*.station').isMongoId(),
-        body('stations.*.arrival').matches(timeRegex),
+        body('stations.*.arrival')
+            .matches(timeRegex)
+            .withMessage('Arrival time must be in HH:MM format (e.g., 06:00)'),
         body('stations.*.departure')
             .matches(timeRegex)
+            .withMessage('Departure time must be in HH:MM format (e.g., 06:05)')
             .custom((departure, { req, path }) => {
-                const stationIndex = path.split('.')[1];
-                return departure > req.body.stations[stationIndex].arrival;
+                // Extract index from path (e.g., "stations[0].departure" -> 0)
+                const indexMatch = path.match(/\[(\d+)\]/);
+                if (!indexMatch) {
+                    throw new Error('Invalid station index');
+                }
+                const stationIndex = parseInt(indexMatch[1]);
+                
+                // Check if stations array exists and has the required index
+                if (!req.body.stations || !Array.isArray(req.body.stations) || !req.body.stations[stationIndex]) {
+                    throw new Error('Invalid stations array');
+                }
+                
+                const station = req.body.stations[stationIndex];
+                if (!station.arrival) {
+                    throw new Error('Arrival time is required for this station');
+                }
+                
+                if (departure <= station.arrival) {
+                    throw new Error('Departure time must be after arrival time');
+                }
+                
+                return true;
             })
     ],
 
