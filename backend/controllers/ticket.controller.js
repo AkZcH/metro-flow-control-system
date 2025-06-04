@@ -1,6 +1,10 @@
 const Ticket = require('../models/ticket.model');
 const Line = require('../models/line.model');
 const Station = require('../models/station.model');
+const mongoose = require('mongoose');
+const semaphoreService = require('../services/semaphore.service');
+const realtimeService = require('../services/realtime.service');
+const Train = require('../models/train.model');
 
 // Helper function to find interchange stations between lines
 const findInterchangeStations = async (line1Id, line2Id) => {
@@ -301,10 +305,77 @@ const getTicketById = async (req, res) => {
     }
 };
 
-// Cancel ticket
+// Create a new ticket with capacity-based booking
+const createTicket = async (req, res) => {
+    try {
+        const { userId, lineId, departureTime, fromStation, toStation, passengerCount = 1 } = req.body;
+
+        // Book tickets atomically (this handles capacity check and update)
+        const train = await semaphoreService.bookTickets(lineId, departureTime, passengerCount);
+
+        // Create ticket
+        const ticket = new Ticket({
+            userId,
+            line: lineId,
+            departureTime,
+            fromStation,
+            toStation,
+            passengerCount,
+            status: 'CONFIRMED',
+            fare: await calculateFare(fromStation, toStation) // Use existing fare calculation
+        });
+
+        await ticket.save();
+
+        // Get updated capacity
+        const capacity = await semaphoreService.getTrainCapacity(lineId, departureTime);
+
+        // Notify user about booking
+        realtimeService.notifyBookingStatus(userId, ticket._id, 'CONFIRMED', {
+            message: 'Your ticket has been confirmed',
+            ticket: ticket,
+            trainCapacity: {
+                available: capacity.availableCapacity,
+                total: capacity.totalCapacity,
+                occupancy: capacity.occupancyPercentage
+            }
+        });
+
+        // Broadcast capacity update
+        realtimeService.broadcastCapacityUpdate(lineId, departureTime, capacity);
+
+        res.status(201).json({
+            success: true,
+            data: {
+                ticket,
+                trainCapacity: {
+                    available: capacity.availableCapacity,
+                    total: capacity.totalCapacity,
+                    occupancy: capacity.occupancyPercentage
+                }
+            }
+        });
+    } catch (error) {
+        if (error.message.includes('Not enough capacity available')) {
+            return res.status(400).json({
+                success: false,
+                message: 'Sorry, the train is full or does not have enough capacity for the requested number of passengers.'
+            });
+        }
+
+        res.status(500).json({
+            success: false,
+            message: 'Error creating ticket',
+            error: error.message
+        });
+    }
+};
+
+// Cancel ticket and release capacity
 const cancelTicket = async (req, res) => {
     try {
-        const ticket = await Ticket.findById(req.params.id);
+        const { ticketId } = req.params;
+        const ticket = await Ticket.findById(ticketId);
 
         if (!ticket) {
             return res.status(404).json({
@@ -313,33 +384,45 @@ const cancelTicket = async (req, res) => {
             });
         }
 
-        // Check if ticket is already cancelled
-        if (ticket.status === 'cancelled') {
-            return res.status(400).json({
-                success: false,
-                message: 'Ticket is already cancelled'
-            });
-        }
+        // Update ticket status and release capacity atomically
+        const [updatedTicket, train] = await Promise.all([
+            Ticket.findByIdAndUpdate(
+                ticketId,
+                { status: 'CANCELLED' },
+                { new: true }
+            ),
+            semaphoreService.cancelTickets(
+                ticket.line,
+                ticket.departureTime,
+                ticket.passengerCount
+            )
+        ]);
 
-        // Check if ticket is within cancellation window (2 hours before journey)
-        const bookingTime = new Date(ticket.bookingTime);
-        const now = new Date();
-        const hoursSinceBooking = (now - bookingTime) / (1000 * 60 * 60);
+        // Notify user about cancellation
+        realtimeService.notifyBookingStatus(ticket.userId, ticket._id, 'CANCELLED', {
+            message: 'Your ticket has been cancelled',
+            ticket: updatedTicket,
+            trainCapacity: {
+                available: train.availableCapacity,
+                total: train.totalCapacity,
+                occupancy: train.occupancyPercentage
+            }
+        });
 
-        if (hoursSinceBooking > 2) {
-            return res.status(400).json({
-                success: false,
-                message: 'Ticket cannot be cancelled after 2 hours of booking'
-            });
-        }
+        // Broadcast capacity update
+        realtimeService.broadcastCapacityUpdate(ticket.line, ticket.departureTime, train);
 
-        ticket.status = 'cancelled';
-        await ticket.save();
-
-        res.status(200).json({
+        res.json({
             success: true,
             message: 'Ticket cancelled successfully',
-            data: ticket
+            data: {
+                ticket: updatedTicket,
+                trainCapacity: {
+                    available: train.availableCapacity,
+                    total: train.totalCapacity,
+                    occupancy: train.occupancyPercentage
+                }
+            }
         });
     } catch (error) {
         res.status(500).json({
@@ -394,5 +477,6 @@ module.exports = {
     getUserTickets,
     getTicketById,
     cancelTicket,
-    getFareEstimate
+    getFareEstimate,
+    createTicket
 }; 

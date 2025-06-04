@@ -1,37 +1,65 @@
-// import express from 'express';
-// import dotenv from 'dotenv';
-// import cors from 'cors';
-// import mongoose from 'mongoose';
-
-// import authRoutes from './routes/auth.js';
-// import ticketRoutes from './routes/tickets.js';
-// import gateRoutes from './routes/gate.js';
-
-// dotenv.config();
-// const app = express();
-
-// app.use(cors());
-// app.use(express.json());
-
-// app.use('/api/auth', authRoutes);
-// app.use('/api/tickets', ticketRoutes);
-// app.use('/api/gate', gateRoutes);
-
-// const PORT = process.env.PORT || 5000;
-// mongoose.connect(process.env.MONGO_URI)
-//   .then(() => app.listen(PORT, () => console.log(`Backend running on port ${PORT}`)))
-//   .catch(err => console.error(err));
-
-
+const express = require('express');
+const mongoose = require('mongoose');
+const cors = require('cors');
 const http = require('http');
-const app = require('./app');
-// const { initializeSocket } = require('./socket');
-const port = process.env.PORT || 3000;
+const realtimeService = require('./services/realtime.service');
+const semaphoreService = require('./services/semaphore.service');
 
+const app = express();
 const server = http.createServer(app);
 
-// initializeSocket(server);
+// Initialize real-time service
+realtimeService.initialize(server);
 
-server.listen(port, () => {
-    console.log(`Server is running on port ${port}`);
+// Start semaphore cleanup
+semaphoreService.startCleanupInterval();
+
+// Middleware
+app.use(cors());
+app.use(express.json());
+
+// Routes
+app.use('/api/tickets', require('./routes/ticket.routes'));
+app.use('/api/lines', require('./routes/line.routes'));
+app.use('/api/stations', require('./routes/station.routes'));
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+    console.error(err.stack);
+    res.status(500).json({
+        success: false,
+        message: 'Something went wrong!',
+        error: process.env.NODE_ENV === 'development' ? err.message : undefined
+    });
+});
+
+// Connect to MongoDB
+mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/kolkata-metro', {
+    useNewUrlParser: true,
+    useUnifiedTopology: true
+})
+.then(() => {
+    console.log('Connected to MongoDB');
+    
+    // Start server
+    const PORT = process.env.PORT || 5000;
+    server.listen(PORT, () => {
+        console.log(`Server is running on port ${PORT}`);
+    });
+})
+.catch(err => {
+    console.error('MongoDB connection error:', err);
+    process.exit(1);
+});
+
+// Handle graceful shutdown
+process.on('SIGTERM', () => {
+    console.log('SIGTERM received. Shutting down gracefully...');
+    server.close(() => {
+        console.log('Server closed');
+        mongoose.connection.close(false, () => {
+            console.log('MongoDB connection closed');
+            process.exit(0);
+        });
+    });
 });
