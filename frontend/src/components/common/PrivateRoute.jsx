@@ -1,6 +1,6 @@
 import React from 'react';
 import { Navigate } from 'react-router-dom';
-import { useAuth } from '../../hooks/useAuth';
+import { useAuth } from '../../hooks/useAuth.js';
 
 function PrivateRoute({ children }) {
   const { isAuthenticated } = useAuth();
@@ -12,4 +12,4 @@ function PrivateRoute({ children }) {
   return children;
 }
 
-export default PrivateRoute;
+export default PrivateRoute; 

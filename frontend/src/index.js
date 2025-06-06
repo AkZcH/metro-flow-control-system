@@ -3,11 +3,10 @@ import ReactDOM from 'react-dom/client';
 import { Provider } from 'react-redux';
 import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
-import App from './App.jsx';
+import App from './App';
 import { store } from './redux/store';
 import theme from './theme';
-import { AuthProvider } from './contexts/AuthContext.jsx';
-import './index.css';
+import { AuthProvider } from './contexts/AuthContext';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 
@@ -22,4 +21,4 @@ root.render(
       </ThemeProvider>
     </Provider>
   </React.StrictMode>
-);
+); 
