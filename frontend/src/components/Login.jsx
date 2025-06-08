@@ -26,23 +26,15 @@ const Login = () => {
     try {
       const response = await axios.post(
         "http://localhost:5000/api/auth/login",
-        formData,
-        { withCredentials: true }
+        formData
       );
       
-      if (response.data.token) {
-        // Store auth data
-        localStorage.setItem('token', response.data.token);
-        localStorage.setItem('user', JSON.stringify(response.data.user));
-        
-        // Set default authorization header for future requests
-        axios.defaults.headers.common['Authorization'] = `Bearer ${response.data.token}`;
-        
-        // Navigate to dashboard
-        navigate("/dashboard", { replace: true });
-      }
+      // Store token and user info
+      localStorage.setItem('token', response.data.token);
+      localStorage.setItem('user', JSON.stringify(response.data.user));
+      
+      navigate("/dashboard");
     } catch (err) {
-      console.error('Login error:', err);
       setError(err.response?.data?.message || "Invalid email or password");
     } finally {
       setLoading(false);
@@ -96,19 +88,38 @@ const Login = () => {
             />
           </div>
 
+          <div className="flex items-center justify-between">
+            <div className="text-sm">
+              <Link to="/forgot-password" className="text-[#00e0ff] hover:text-[#0066ff] transition-colors">
+                Forgot your password?
+              </Link>
+            </div>
+          </div>
+
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-2 rounded bg-gradient-to-r from-[#00e0ff] to-[#0066ff] font-semibold disabled:opacity-50"
+            className="w-full py-2 rounded bg-gradient-to-r from-[#00e0ff] to-[#0066ff] font-semibold hover:from-[#0066ff] hover:to-[#00e0ff] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading ? "Signing in..." : "Sign In"}
+            {loading ? (
+              <span className="flex items-center justify-center">
+                <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Signing in...
+              </span>
+            ) : (
+              "Sign in"
+            )}
           </button>
 
-          <div className="text-center">
+          <p className="text-center text-gray-400">
+            Don't have an account?{" "}
             <Link to="/register" className="text-[#00e0ff] hover:text-[#0066ff] transition-colors">
-              Don't have an account? Register
+              Sign up
             </Link>
-          </div>
+          </p>
         </form>
       </div>
     </div>

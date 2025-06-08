@@ -1,9 +1,10 @@
-import express from 'express';
-import { bookTicket, getMyTickets } from '../controllers/ticketController.js';
-import authMiddleware from '../middlewares/authMiddleware.js';
+const express = require('express');
+const { bookTicket, getMyTickets } = require('../controllers/ticketController');
+const authMiddleware = require('../middlewares/authMiddleware');
 
 const router = express.Router();
-router.post('/book', authMiddleware, bookTicket);
-router.get('/my', authMiddleware, getMyTickets);
 
-export default router;
+router.post('/book', authMiddleware, bookTicket);
+router.get('/my-tickets', authMiddleware, getMyTickets);
+
+module.exports = router;

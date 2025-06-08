@@ -15,10 +15,15 @@ realtimeService.initialize(server);
 semaphoreService.startCleanupInterval();
 
 // Middleware
-app.use(cors());
+app.use(cors({
+    origin: ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:5173'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    credentials: true
+}));
 app.use(express.json());
 
 // Routes
+app.use('/api/auth', require('./routes/auth'));
 app.use('/api/tickets', require('./routes/ticket.routes'));
 app.use('/api/lines', require('./routes/line.routes'));
 app.use('/api/stations', require('./routes/station.routes'));
