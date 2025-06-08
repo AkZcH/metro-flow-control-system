@@ -9,8 +9,6 @@ import {
   Card,
   CardContent,
   IconButton,
-  useTheme,
-  useMediaQuery
 } from '@mui/material';
 import DirectionsSubwayIcon from '@mui/icons-material/DirectionsSubway';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
@@ -19,11 +17,9 @@ import FacebookIcon from '@mui/icons-material/Facebook';
 import TwitterIcon from '@mui/icons-material/Twitter';
 import InstagramIcon from '@mui/icons-material/Instagram';
 import Features from '../components/common/features';
+import Hero from '../components/common/Hero';
 
 function Home() {
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-
   const services = [
     {
       icon: <DirectionsSubwayIcon sx={{ fontSize: 40 }} />,
@@ -52,97 +48,7 @@ function Home() {
       }}
     >
       {/* Hero Section */}
-      <Box
-        sx={{
-          flex: 1,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          py: 6,
-        }}
-      >
-        <Container maxWidth="md">
-          <Box
-            sx={{
-              p: { xs: 4, sm: 6 },
-              borderRadius: 6,
-              backdropFilter: 'blur(12px)',
-              background: 'rgba(255, 255, 255, 0.05)',
-              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.5)',
-              textAlign: 'center',
-              border: '1px solid rgba(255, 255, 255, 0.1)',
-            }}
-          >
-            <Typography
-              variant={isMobile ? 'h4' : 'h2'}
-              component="h1"
-              gutterBottom
-              sx={{
-                fontWeight: 800,
-                background: 'linear-gradient(90deg, #00e0ff, #0066ff)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                letterSpacing: 1,
-              }}
-            >
-              Welcome to the Future of Metro Travel
-            </Typography>
-
-            <Typography
-              variant="h6"
-              sx={{ color: '#ccc', maxWidth: 600, mx: 'auto', mb: 4 }}
-            >
-              Book smart, travel faster. Experience next-gen ticketing powered by tech.
-            </Typography>
-
-            <Box
-              sx={{
-                mt: 3,
-                display: 'flex',
-                flexDirection: isMobile ? 'column' : 'row',
-                justifyContent: 'center',
-                gap: 2,
-              }}
-            >
-              <Button
-                variant="contained"
-                color="primary"
-                component={Link}
-                to="/login"
-                size="large"
-                sx={{
-                  px: 5,
-                  fontWeight: 600,
-                  fontSize: '1rem',
-                  borderRadius: 3,
-                }}
-              >
-                Login
-              </Button>
-              <Button
-                variant="outlined"
-                color="primary"
-                component={Link}
-                to="/register"
-                size="large"
-                sx={{
-                  px: 5,
-                  fontWeight: 600,
-                  fontSize: '1rem',
-                  borderRadius: 3,
-                  color: '#00e0ff',
-                  borderColor: '#00e0ff',
-                  '&:hover': {
-                    borderColor: '#00c6ff',
-                  },
-                }}
-              >
-                Register
-              </Button>
-            </Box>
-          </Box>
-        </Container>
-      </Box>
+      <Hero />
 
       {/* Features Section */}
       <Box sx={{ backgroundColor: '#0d1117' }}>
@@ -151,14 +57,55 @@ function Home() {
 
       {/* Services Section */}
       <Container maxWidth="lg" sx={{ mb: 8 }}>
-        <Typography variant="h3" component="h2" align="center" gutterBottom>
+        <Typography 
+          variant="h3" 
+          component="h2" 
+          align="center" 
+          gutterBottom
+          sx={{
+            fontWeight: 800,
+            background: 'linear-gradient(90deg, #00e0ff, #0066ff)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            letterSpacing: 1,
+            fontSize: { xs: '2rem', sm: '2.5rem', md: '3rem' },
+            mb: 4
+          }}
+        >
           Our Services
         </Typography>
         <Grid container spacing={4} sx={{ mt: 2 }}>
           {services.map((service, index) => (
             <Grid item xs={12} md={4} key={index}>
-              <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', p: 2 }}>
-                <Box sx={{ color: 'primary.main', mb: 2 }}>
+              <Card sx={{ 
+                height: '100%', 
+                display: 'flex', 
+                flexDirection: 'column', 
+                alignItems: 'center', 
+                p: 2,
+                transition: 'all 0.3s ease-in-out, box-shadow 0.5s ease-in-out',
+                boxShadow: '0 12px 20px rgba(0, 0, 0, 0.3)',
+                '&:hover': {
+                  transform: 'translateY(-8px)',
+                  boxShadow: '0 12px 20px rgba(0, 0, 0, 0.3), 0 0 20px rgba(0, 224, 255, 0.3), 0 0 40px rgba(0, 224, 255, 0.2)',
+                  backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                  '& .MuiSvgIcon-root': {
+                    color: '#00e0ff',
+                    transform: 'scale(1.1)',
+                  },
+                  '& .MuiTypography-h5': {
+                    color: '#00e0ff',
+                  },
+                  '& .MuiTypography-body1': {
+                    color: '#fff',
+                  }
+                }
+              }}>
+                <Box sx={{ 
+                  color: 'primary.main', 
+                  mb: 2,
+                  transition: 'all 0.3s ease-in-out',
+                }}>
                   {service.icon}
                 </Box>
                 <CardContent>

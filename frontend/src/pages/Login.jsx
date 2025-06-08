@@ -1,88 +1,62 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Container, Paper, Typography, TextField, Button, Box } from '@mui/material';
-import { useAuth } from '../hooks/useAuth.js';
+import React, { useState } from "react";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
-function Login() {
+const Login = () => {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
   const navigate = useNavigate();
-  const { login } = useAuth();
-  const [formData, setFormData] = React.useState({
-    email: '',
-    password: '',
-  });
 
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
-  };
-
-  const handleSubmit = async (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      // TODO: Implement actual login logic with API
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      });
-      
-      if (response.ok) {
-        const data = await response.json();
-        login(data.token);
-        navigate('/dashboard');
+      const res = await axios.post(
+        "/api/auth/login",
+        { email, password },
+        { withCredentials: true } // for cookies
+      );
+      if (res.status === 200) {
+        navigate("/portal"); // redirect to user dashboard
       }
-    } catch (error) {
-      console.error('Login failed:', error);
+    } catch (err) {
+      setError("Invalid email or password");
     }
   };
 
   return (
-    <Container maxWidth="sm">
-      <Box sx={{ mt: 8 }}>
-        <Paper elevation={3} sx={{ p: 4 }}>
-          <Typography variant="h4" component="h1" gutterBottom align="center">
-            Login
-          </Typography>
-          <form onSubmit={handleSubmit}>
-            <TextField
-              fullWidth
-              label="Email"
-              name="email"
-              type="email"
-              value={formData.email}
-              onChange={handleChange}
-              margin="normal"
-              required
-            />
-            <TextField
-              fullWidth
-              label="Password"
-              name="password"
-              type="password"
-              value={formData.password}
-              onChange={handleChange}
-              margin="normal"
-              required
-            />
-            <Button
-              type="submit"
-              fullWidth
-              variant="contained"
-              color="primary"
-              size="large"
-              sx={{ mt: 3 }}
-            >
-              Login
-            </Button>
-          </form>
-        </Paper>
-      </Box>
-    </Container>
+    <div className="flex items-center justify-center min-h-screen bg-[#1c1c1c] text-white">
+      <form
+        onSubmit={handleLogin}
+        className="bg-[#2b2b2b] p-8 rounded-xl w-full max-w-md shadow-xl space-y-6"
+      >
+        <h2 className="text-3xl font-bold">Login</h2>
+        {error && <p className="text-red-500">{error}</p>}
+        <input
+          type="email"
+          placeholder="Email"
+          className="w-full px-4 py-2 rounded bg-[#333] border border-gray-600"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+        />
+        <input
+          type="password"
+          placeholder="Password"
+          className="w-full px-4 py-2 rounded bg-[#333] border border-gray-600"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+        />
+        <button
+          type="submit"
+          className="w-full py-2 rounded bg-gradient-to-r from-[#00e0ff] to-[#0066ff] font-semibold"
+        >
+          Login
+        </button>
+      </form>
+    </div>
   );
-}
+};
 
 export default Login; 
