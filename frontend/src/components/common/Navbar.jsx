@@ -25,7 +25,7 @@ import Brightness7Icon from '@mui/icons-material/Brightness7';
 import { AuthContext } from '../../contexts/AuthContext';
 
 function Navbar({ toggleTheme }) {
-  const { isAuthenticated, userRole, logout } = useContext(AuthContext);
+  const { isAuthenticated, logout } = useContext(AuthContext);
   const location = useLocation();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
@@ -217,6 +217,23 @@ function Navbar({ toggleTheme }) {
                 </Button>
               )}
             </>
+          )}
+          {isAuthenticated && (
+            <Button
+              component={RouterLink}
+              to="/dashboard"
+              variant="outlined"
+              sx={{
+                color: '#00e0ff',
+                borderColor: '#00e0ff',
+                '&:hover': {
+                  borderColor: '#00c6ff',
+                  backgroundColor: 'rgba(0, 224, 255, 0.1)',
+                },
+              }}
+            >
+              Dashboard
+            </Button>
           )}
           <IconButton
             onClick={toggleTheme}

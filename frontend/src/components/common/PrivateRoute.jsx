@@ -10,6 +10,11 @@ function PrivateRoute({ children }) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
+  // If user is logged in and tries to access login or register, redirect to dashboard
+  if (location.pathname === '/login' || location.pathname === '/register') {
+    return <Navigate to="/dashboard" replace />;
+  }
+
   return children;
 }
 
