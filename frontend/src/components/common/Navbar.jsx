@@ -1,5 +1,5 @@
 import React, { useContext, useState } from 'react';
-import { Link as RouterLink, useLocation } from 'react-router-dom';
+import { Link as RouterLink } from 'react-router-dom';
 import {
   AppBar,
   Toolbar,
@@ -16,23 +16,40 @@ import {
   Collapse,
   Fade,
   Grow,
+  Avatar,
+  Menu,
+  MenuItem,
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import CloseIcon from '@mui/icons-material/Close';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import Brightness4Icon from '@mui/icons-material/Brightness4';
 import Brightness7Icon from '@mui/icons-material/Brightness7';
+import { User, Settings, LogOut } from 'lucide-react';
 import { AuthContext } from '../../contexts/AuthContext';
 
 function Navbar({ toggleTheme }) {
-  const { isAuthenticated, logout } = useContext(AuthContext);
-  const location = useLocation();
+  const { isAuthenticated, logout, user } = useContext(AuthContext);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
   const [openDropdown, setOpenDropdown] = useState(null);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [hoveredItem, setHoveredItem] = useState(null);
+  const [anchorEl, setAnchorEl] = useState(null);
+
+  const handleMenuClick = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+  };
+
+  const handleAdminLogout = () => {
+    logout();
+    handleMenuClose();
+  };
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
@@ -71,8 +88,12 @@ function Navbar({ toggleTheme }) {
             endIcon={item.dropdown && <KeyboardArrowDownIcon />}
             sx={{
               color: '#fff',
+              fontWeight: 600,
+              textTransform: 'none',
               '&:hover': {
                 color: '#00e0ff',
+                textShadow: '0 0 5px rgba(0, 224, 255, 0.4)',
+                transition: 'all 0.3s ease-in-out',
               },
             }}
           >
@@ -108,6 +129,8 @@ function Navbar({ toggleTheme }) {
                   <Button
                     key={subIdx}
                     fullWidth
+                    component={RouterLink}
+                    to={`/${item.label.toLowerCase()}/${subItem.toLowerCase().replace(/ /g, '-')}`}
                     sx={{
                       justifyContent: 'flex-start',
                       px: 2,
@@ -139,8 +162,9 @@ function Navbar({ toggleTheme }) {
       sx={{
         backgroundColor: 'transparent',
         color: '#fff',
-        backdropFilter: 'blur(8px)',
-        background: 'rgba(13, 17, 23, 0.3)',
+        backdropFilter: 'blur(10px) brightness(80%)',
+        background: 'linear-gradient(to right, rgba(13, 17, 23, 0.6), rgba(25, 29, 36, 0.6))',
+        borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
       }}
     >
       <Toolbar sx={{ justifyContent: 'space-between', px: { xs: 2, md: 4 } }}>
@@ -173,15 +197,20 @@ function Navbar({ toggleTheme }) {
                 <>
                   <Button
                     component={RouterLink}
-                    to="/login"
+                    to="/login-gateway"
                     variant="outlined"
                     sx={{
                       color: '#00e0ff',
                       borderColor: '#00e0ff',
+                      fontWeight: 600,
+                      borderRadius: '8px',
+                      padding: '8px 18px',
                       '&:hover': {
                         borderColor: '#00c6ff',
                         backgroundColor: 'rgba(0, 224, 255, 0.1)',
+                        boxShadow: '0 0 15px rgba(0, 224, 255, 0.4)',
                       },
+                      transition: 'all 0.3s ease-in-out',
                     }}
                   >
                     Login
@@ -192,139 +221,156 @@ function Navbar({ toggleTheme }) {
                     variant="contained"
                     sx={{
                       background: 'linear-gradient(90deg, #00e0ff, #0066ff)',
+                      fontWeight: 600,
+                      borderRadius: '8px',
+                      padding: '8px 18px',
                       '&:hover': {
                         background: 'linear-gradient(90deg, #00c6ff, #0052ff)',
+                        boxShadow: '0 0 15px rgba(0, 102, 255, 0.6)',
                       },
+                      transition: 'all 0.3s ease-in-out',
                     }}
                   >
                     Register
                   </Button>
                 </>
               ) : (
-                <Button
-                  onClick={logout}
-                  sx={{
-                    color: '#ff4444',
-                    borderColor: '#ff4444',
-                    '&:hover': {
-                      backgroundColor: 'rgba(255, 68, 68, 0.1)',
-                      borderColor: '#ff4444',
-                    },
-                  }}
-                  variant="outlined"
-                >
-                  Logout
-                </Button>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                  <IconButton onClick={toggleTheme} color="inherit" size="large">
+                    {theme.palette.mode === 'dark' ? <Brightness7Icon /> : <Brightness4Icon />}
+                  </IconButton>
+
+                  {user?.role === 'admin' ? (
+                    <>
+                      <IconButton onClick={handleMenuClick} color="inherit" size="large">
+                        <Avatar sx={{ bgcolor: '#8a2be2' }}>
+                          <User />
+                        </Avatar>
+                      </IconButton>
+                      <Menu
+                        anchorEl={anchorEl}
+                        open={Boolean(anchorEl)}
+                        onClose={handleMenuClose}
+                        PaperProps={{
+                          sx: {
+                            backgroundColor: '#1a1a1a',
+                            color: '#fff',
+                            borderRadius: '8px',
+                            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.5)',
+                            border: '1px solid rgba(255, 255, 255, 0.1)',
+                          },
+                        }}
+                      >
+                        <MenuItem
+                          onClick={handleMenuClose}
+                          component={RouterLink}
+                          to="/admin/dashboard"
+                          sx={{
+                            '&:hover': {
+                              backgroundColor: 'rgba(0, 224, 255, 0.1)',
+                              color: '#00e0ff',
+                            },
+                          }}
+                        >
+                          <Settings sx={{ mr: 1, fontSize: '1.2rem' }} /> Admin Dashboard
+                        </MenuItem>
+                        <MenuItem
+                          onClick={handleAdminLogout}
+                          sx={{
+                            '&:hover': {
+                              backgroundColor: 'rgba(255, 0, 0, 0.1)',
+                              color: '#ff0000',
+                            },
+                          }}
+                        >
+                          <LogOut sx={{ mr: 1, fontSize: '1.2rem' }} /> Logout
+                        </MenuItem>
+                      </Menu>
+                    </>
+                  ) : (
+                    <Button
+                      onClick={logout}
+                      variant="outlined"
+                      sx={{
+                        color: '#00e0ff',
+                        borderColor: '#00e0ff',
+                        fontWeight: 600,
+                        borderRadius: '8px',
+                        padding: '8px 18px',
+                        '&:hover': {
+                          borderColor: '#00c6ff',
+                          backgroundColor: 'rgba(0, 224, 255, 0.1)',
+                        },
+                        transition: 'all 0.3s ease-in-out',
+                      }}
+                    >
+                      Logout
+                    </Button>
+                  )}
+                </Box>
               )}
             </>
           )}
-          {isAuthenticated && (
-            <Button
-              component={RouterLink}
-              to="/dashboard"
-              variant="outlined"
-              sx={{
-                color: '#00e0ff',
-                borderColor: '#00e0ff',
-                '&:hover': {
-                  borderColor: '#00c6ff',
-                  backgroundColor: 'rgba(0, 224, 255, 0.1)',
-                },
-              }}
-            >
-              Dashboard
-            </Button>
-          )}
-          <IconButton
-            onClick={toggleTheme}
-            sx={{
-              color: '#00e0ff',
-              '&:hover': {
-                backgroundColor: 'rgba(0, 224, 255, 0.1)',
-              },
-            }}
-          >
-            {theme.palette.mode === 'dark' ? <Brightness7Icon /> : <Brightness4Icon />}
-          </IconButton>
+
           {isMobile && (
             <IconButton
+              color="inherit"
+              aria-label="open drawer"
+              edge="start"
               onClick={handleDrawerToggle}
-              sx={{
-                color: '#00e0ff',
-                '&:hover': {
-                  backgroundColor: 'rgba(0, 224, 255, 0.1)',
-                },
-              }}
+              sx={{ ml: 0 }}
             >
-              {mobileOpen ? <CloseIcon /> : <MenuIcon />}
+              <MenuIcon />
             </IconButton>
           )}
         </Box>
       </Toolbar>
 
-      {/* Mobile Menu */}
       <Drawer
-        anchor="right"
+        variant="temporary"
         open={mobileOpen}
         onClose={handleDrawerToggle}
-        PaperProps={{
-          sx: {
+        ModalProps={{
+          keepMounted: true,
+        }}
+        sx={{
+          '& .MuiDrawer-paper': {
+            boxSizing: 'border-box',
+            width: 280,
             backgroundColor: '#0d1117',
             color: '#fff',
-            borderLeft: '1px solid rgba(255, 255, 255, 0.1)',
-            width: 280,
           },
         }}
       >
-        <Box sx={{ p: 2 }}>
+        <Box onClick={handleDrawerToggle} sx={{ textAlign: 'center' }}>
+          <IconButton sx={{ my: 2 }}>
+            <CloseIcon sx={{ color: '#fff' }} />
+          </IconButton>
           <List>
             {navItems.map((item, index) => (
               <React.Fragment key={index}>
                 <ListItem
                   button
-                  onClick={() => setOpenDropdown(openDropdown === index ? null : index)}
-                  sx={{
-                    color: '#fff',
-                    transition: 'all 0.2s ease-in-out',
-                    '&:hover': {
-                      backgroundColor: 'rgba(0, 224, 255, 0.1)',
-                      transform: 'translateX(5px)',
-                    },
-                  }}
+                  onClick={() => item.dropdown && setOpenDropdown(openDropdown === index ? null : index)}
+                  sx={{ '&:hover': { backgroundColor: 'rgba(0, 224, 255, 0.1)' } }}
                 >
                   <ListItemText primary={item.label} />
                   {item.dropdown && (
-                    <KeyboardArrowDownIcon
-                      sx={{
-                        transform: openDropdown === index ? 'rotate(180deg)' : 'none',
-                        transition: 'transform 0.3s ease-in-out',
-                      }}
-                    />
+                    openDropdown === index ? <KeyboardArrowDownIcon sx={{ transform: 'rotate(180deg)' }} /> : <KeyboardArrowDownIcon />
                   )}
                 </ListItem>
                 {item.dropdown && (
-                  <Collapse 
-                    in={openDropdown === index} 
-                    timeout={300}
-                    easing={{
-                      enter: 'cubic-bezier(0.4, 0, 0.2, 1)',
-                      exit: 'cubic-bezier(0.4, 0, 0.2, 1)',
-                    }}
-                  >
+                  <Collapse in={openDropdown === index} timeout="auto" unmountOnExit>
                     <List component="div" disablePadding>
                       {item.dropdown.map((subItem, subIdx) => (
                         <ListItem
                           key={subIdx}
                           button
+                          component={RouterLink}
+                          to={`/${item.label.toLowerCase()}/${subItem.toLowerCase().replace(/ /g, '-')}`}
                           sx={{
                             pl: 4,
-                            color: '#fff',
-                            transition: 'all 0.2s ease-in-out',
-                            '&:hover': {
-                              backgroundColor: 'rgba(0, 224, 255, 0.1)',
-                              color: '#00e0ff',
-                              transform: 'translateX(5px)',
-                            },
+                            '&:hover': { backgroundColor: 'rgba(0, 224, 255, 0.05)' },
                           }}
                         >
                           <ListItemText primary={subItem} />
@@ -335,19 +381,17 @@ function Navbar({ toggleTheme }) {
                 )}
               </React.Fragment>
             ))}
-            {isAuthenticated && (
-              <ListItem
-                button
-                onClick={logout}
-                sx={{
-                  color: '#ff4444',
-                  transition: 'all 0.2s ease-in-out',
-                  '&:hover': {
-                    backgroundColor: 'rgba(255, 68, 68, 0.1)',
-                    transform: 'translateX(5px)',
-                  },
-                }}
-              >
+            {!isAuthenticated ? (
+              <>
+                <ListItem button component={RouterLink} to="/login-gateway" sx={{ '&:hover': { backgroundColor: 'rgba(0, 224, 255, 0.1)' } }}>
+                  <ListItemText primary="Login" />
+                </ListItem>
+                <ListItem button component={RouterLink} to="/register" sx={{ '&:hover': { backgroundColor: 'rgba(0, 224, 255, 0.1)' } }}>
+                  <ListItemText primary="Register" />
+                </ListItem>
+              </>
+            ) : (
+              <ListItem button onClick={logout} sx={{ '&:hover': { backgroundColor: 'rgba(255, 0, 0, 0.1)' } }}>
                 <ListItemText primary="Logout" />
               </ListItem>
             )}

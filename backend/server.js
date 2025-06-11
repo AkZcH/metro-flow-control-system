@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
@@ -27,6 +28,7 @@ app.use('/api/auth', require('./routes/auth'));
 app.use('/api/tickets', require('./routes/ticket.routes'));
 app.use('/api/lines', require('./routes/line.routes'));
 app.use('/api/stations', require('./routes/station.routes'));
+app.use('/api/admin', require('./routes/adminAuth'));
 
 // Error handling middleware
 app.use((err, req, res, next) => {

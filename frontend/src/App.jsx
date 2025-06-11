@@ -7,7 +7,8 @@ import Register from './pages/Register.jsx';
 import UserLayout from './components/user/UserLayout.jsx';
 import Dashboard from './pages/user/Dashboard.jsx';
 import AdminLogin from './pages/AdminLogin.jsx';
-import AdminPanel from './pages/AdminPanel.jsx';
+import AdminDashboard from './pages/AdminDashboard.jsx';
+import LoginGateway from './pages/LoginGateway.jsx';
 import PrivateRoute from './components/common/PrivateRoute.jsx';
 
 function App() {
@@ -18,6 +19,7 @@ function App() {
         <Routes>
           {/* Public routes */}
           <Route path="/" element={<Home />} />
+          <Route path="/login-gateway" element={<LoginGateway />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/admin/login" element={<AdminLogin />} />
@@ -33,11 +35,13 @@ function App() {
 
           {/* Protected admin routes */}
           <Route
-            path="/admin/panel"
+            path="/admin/dashboard"
             element={
-              <PrivateRoute>
-                <AdminPanel />
-              </PrivateRoute>
+              localStorage.getItem('adminToken') ? (
+                <AdminDashboard />
+              ) : (
+                <Navigate to="/admin/login" replace />
+              )
             }
           />
 

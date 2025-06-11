@@ -1,88 +1,63 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Container, Paper, Typography, TextField, Button, Box } from '@mui/material';
-import { useAuth } from '../hooks/useAuth.js';
+import axios from 'axios';
 
-function AdminLogin() {
+const AdminLogin = () => {
+  const [form, setForm] = useState({ username: '', password: '' });
+  const [error, setError] = useState('');
   const navigate = useNavigate();
-  const { login } = useAuth();
-  const [formData, setFormData] = React.useState({
-    email: '',
-    password: '',
-  });
 
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
-  };
-
-  const handleSubmit = async (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      // TODO: Implement actual admin login logic with API
-      const response = await fetch('/api/admin/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      });
-      
-      if (response.ok) {
-        const data = await response.json();
-        login(data.token);
-        navigate('/admin/panel');
-      }
-    } catch (error) {
-      console.error('Admin login failed:', error);
+      const res = await axios.post('/api/admin/login', form);
+      localStorage.setItem('adminToken', res.data.token);
+      navigate('/admin/dashboard');
+    } catch (err) {
+      setError('Login failed: ' + (err.response?.data?.message || 'Unknown error'));
     }
   };
 
   return (
-    <Container maxWidth="sm">
-      <Box sx={{ mt: 8 }}>
-        <Paper elevation={3} sx={{ p: 4 }}>
-          <Typography variant="h4" component="h1" gutterBottom align="center">
-            Admin Login
-          </Typography>
-          <form onSubmit={handleSubmit}>
-            <TextField
-              fullWidth
-              label="Email"
-              name="email"
-              type="email"
-              value={formData.email}
-              onChange={handleChange}
-              margin="normal"
+    <div className="min-h-screen flex items-center justify-center bg-gray-900">
+      <div className="max-w-md w-full p-6 bg-[#1a1a1a] rounded-xl shadow-lg">
+        <h2 className="text-2xl font-bold text-white mb-6">Admin Login</h2>
+        {error && (
+          <div className="mb-4 p-3 bg-red-500/10 border border-red-500 rounded text-red-500">
+            {error}
+          </div>
+        )}
+        <form onSubmit={handleLogin} className="space-y-4">
+          <div>
+            <input
+              type="text"
+              placeholder="Username"
+              value={form.username}
+              onChange={(e) => setForm({ ...form, username: e.target.value })}
+              className="w-full p-3 bg-[#2b2b2b] border border-gray-700 rounded text-white placeholder-gray-400 focus:outline-none focus:border-blue-500"
               required
             />
-            <TextField
-              fullWidth
-              label="Password"
-              name="password"
+          </div>
+          <div>
+            <input
               type="password"
-              value={formData.password}
-              onChange={handleChange}
-              margin="normal"
+              placeholder="Password"
+              value={form.password}
+              onChange={(e) => setForm({ ...form, password: e.target.value })}
+              className="w-full p-3 bg-[#2b2b2b] border border-gray-700 rounded text-white placeholder-gray-400 focus:outline-none focus:border-blue-500"
               required
             />
-            <Button
-              type="submit"
-              fullWidth
-              variant="contained"
-              color="primary"
-              size="large"
-              sx={{ mt: 3 }}
-            >
-              Login
-            </Button>
-          </form>
-        </Paper>
-      </Box>
-    </Container>
+          </div>
+          <button
+            type="submit"
+            className="w-full p-3 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+          >
+            Login
+          </button>
+        </form>
+      </div>
+    </div>
   );
-}
+};
 
 export default AdminLogin; 
