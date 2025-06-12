@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { Visibility, VisibilityOff } from "@mui/icons-material";
 
 const AdminLogin = () => {
   const [form, setForm] = useState({ username: '', password: '' });
   const [error, setError] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
 
   const handleLogin = async (e) => {
@@ -16,6 +18,10 @@ const AdminLogin = () => {
     } catch (err) {
       setError('Login failed: ' + (err.response?.data?.message || 'Unknown error'));
     }
+  };
+
+  const handleClickShowPassword = () => {
+    setShowPassword(!showPassword);
   };
 
   return (
@@ -38,15 +44,26 @@ const AdminLogin = () => {
               required
             />
           </div>
-          <div>
+          <div className="relative">
             <input
-              type="password"
+              type={showPassword ? "text" : "password"}
               placeholder="Password"
               value={form.password}
               onChange={(e) => setForm({ ...form, password: e.target.value })}
-              className="w-full p-3 bg-[#2b2b2b] border border-gray-700 rounded text-white placeholder-gray-400 focus:outline-none focus:border-blue-500"
+              className="w-full p-3 bg-[#2b2b2b] border border-gray-700 rounded text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 pr-10"
               required
             />
+            <button
+              type="button"
+              onClick={handleClickShowPassword}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
+            >
+              {showPassword ? (
+                <VisibilityOff className="h-5 w-5" />
+              ) : (
+                <Visibility className="h-5 w-5" />
+              )}
+            </button>
           </div>
           <button
             type="submit"

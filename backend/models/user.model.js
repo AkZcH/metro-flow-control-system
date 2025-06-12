@@ -25,6 +25,10 @@ const userSchema = new mongoose.Schema({
         required: true,
         select: false,
     },
+    walletBalance: {
+        type: Number,
+        default: 0
+    },
     socketId: {
         type: String,
     },

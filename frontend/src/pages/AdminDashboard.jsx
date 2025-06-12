@@ -6,6 +6,7 @@ import { Card, CardContent } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../components/ui/tabs';
+import AddMoneyCard from '../components/AddMoneyCard';
 
 const AdminDashboard = () => {
   const [adminData, setAdminData] = useState(null);
@@ -112,11 +113,7 @@ const AdminDashboard = () => {
         <TabsContent value="wallet">
           <div className="p-6 bg-[#1e2130] rounded-xl">
             <h2 className="text-xl font-semibold mb-4">Wallet Management</h2>
-            <div className="flex gap-4 items-end">
-              <Input placeholder="Enter user email or ID" className="flex-1" />
-              <Input placeholder="Amount to Add" className="w-1/3" />
-              <Button className="bg-blue-500 hover:bg-blue-600">Add Funds</Button>
-            </div>
+            <AddMoneyCard />
           </div>
         </TabsContent>
 
